@@ -5,34 +5,36 @@ use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use crate::{ui, words};
 
 /// Enum holding current app state
-pub enum AppStates {
+pub enum ScreenStates {
     /// The user is currently playing
     Playing,
-    /// The user is choosing exit or new round
-    ChoosingNext,
+    /// The game has ended and the user is choosing exit or new round
+    GameEndScreen,
 }
 
 pub struct App {
-    app_state: AppStates,
     exit: bool,
-    /// State of current input word, valid if found in wordlist
-    current_input_valid: bool,
     words: words::Words,
-    attempts: [String; 6],
-    input: String,
-    debug_mode: bool,
+    pub screen_state: ScreenStates,
+    /// The word user is currently typing
+    pub input: String,
+    /// State of current input word, valid if found in wordlist
+    pub current_input_valid: bool,
+    /// Attempted words user has tried
+    pub attempts: [String; 6],
+    pub debug_mode: bool,
 }
 
 impl App {
     pub fn new(debug_mode: bool) -> Self {
         let mut instance = Self {
-            app_state: AppStates::Playing,
+            screen_state: ScreenStates::Playing,
             exit: false,
             current_input_valid: false,
             words: words::Words::new(),
             attempts: Default::default(),
             input: "".to_string(),
-            debug_mode: debug_mode,
+            debug_mode,
         };
         instance.words.choose_word();
 
@@ -61,9 +63,10 @@ impl App {
                 return;
             }
 
-            match self.app_state {
-                AppStates::Playing => self.handle_playing(key),
-                AppStates::ChoosingNext => self.handle_choosing_next(key),
+            match self.screen_state {
+                ScreenStates::Playing => self.handle_playing(key),
+                ScreenStates::GameEndScreen => self.handle_choosing_next(key),
+                ScreenStates::GameEndScreen => todo!(),
             }
         }
     }
@@ -82,7 +85,7 @@ impl App {
                 self.current_input_valid = false;
 
                 self.words.choose_word();
-                self.app_state = AppStates::Playing;
+                self.screen_state = ScreenStates::Playing;
             }
             KeyCode::Char('n' | 'N') => {
                 self.exit = true;
