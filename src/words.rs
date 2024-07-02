@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use rand::Rng;
 
 /// Compile time included wordlist "sgb-words.txt" provided by Stanford University
@@ -53,26 +55,28 @@ impl Words {
         let mut letter_states = [LetterMatch::Incorrect; 5];
         let chosen_word = self.chosen_word.unwrap();
 
-        let mut letter_counts_chosen = [0u8; 26];
-
-        chosen_word
-            .chars()
-            .for_each(|c| letter_counts_chosen[c as usize - 'a' as usize] += 1);
+        let mut letter_counts_chosen: HashMap<char, u8> = ('a'..='z')
+            .into_iter()
+            .map(|c| (c, chosen_word.chars().filter(|cc| cc == &c).count() as u8)).collect();
 
         for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
             if c1 == c2 {
                 letter_states[i] = LetterMatch::Correct;
-                letter_counts_chosen[c1 as usize - 'a' as usize] -= 1;
+                if let Some(count) = letter_counts_chosen.get_mut(&c1) {
+                    *count += 1;
+                }
             }
         }
 
         for (i, c) in word.chars().enumerate() {
             if chosen_word.contains(c)
-                && letter_counts_chosen[c as usize - 'a' as usize] > 0
+                && letter_counts_chosen[&c] > 0
                 && letter_states[i] != LetterMatch::Correct
             {
                 letter_states[i] = LetterMatch::Partial;
-                letter_counts_chosen[c as usize - 'a' as usize] -= 1;
+                if let Some(count) = letter_counts_chosen.get_mut(&c) {
+                    *count -= 1;
+                }
             }
         }
 
