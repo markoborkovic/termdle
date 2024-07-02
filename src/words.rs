@@ -57,7 +57,8 @@ impl Words {
 
         let mut letter_counts_chosen: HashMap<char, u8> = ('a'..='z')
             .into_iter()
-            .map(|c| (c, chosen_word.chars().filter(|cc| cc == &c).count() as u8)).collect();
+            .map(|c| (c, chosen_word.chars().filter(|cc| cc == &c).count() as u8))
+            .collect();
 
         for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
             if c1 == c2 {
