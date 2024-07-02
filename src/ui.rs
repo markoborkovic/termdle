@@ -6,10 +6,10 @@ use ratatui::{
         execute,
         terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     },
-    layout::{Alignment, Constraint, Direction, Layout, Rect},
+    layout::{Alignment, Constraint, Direction, Layout},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph},
+    widgets::Paragraph,
     Frame, Terminal,
 };
 
@@ -44,15 +44,6 @@ fn draw_frame(frame: &mut Frame, app: &app::App) {
 }
 
 fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
-    // let game_area = Layout::default()
-    //     .direction(Direction::Horizontal)
-    //     .constraints([
-    //         Constraint::Fill(1),
-    //         Constraint::Min(40),
-    //         Constraint::Fill(1),
-    //     ])
-    //     .split(frame.size())[1];
-
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -100,7 +91,7 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
             for (i, c) in attempt.chars().enumerate() {
                 line_vec.push(Span::raw(" "));
                 line_vec.push(Span::styled(
-                    c.to_string(),
+                    c.to_string().to_ascii_uppercase(),
                     match lettermatch[i] {
                         LetterMatch::Correct => Style::default().fg(Color::Green).bold(),
                         LetterMatch::Partial => Style::default().fg(Color::Yellow),
@@ -145,7 +136,7 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
 
     frame.render_widget(valid_word_status, input_verifiction_chunk);
 
-    let mut modified_input = app.input.clone();
+    let mut modified_input = app.input.clone().to_ascii_uppercase();
     if modified_input.len() < 5 {
         modified_input.push_str(&"_".repeat(5 - modified_input.len()));
     }
