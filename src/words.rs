@@ -63,9 +63,7 @@ impl Words {
         for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
             if c1 == c2 {
                 letter_states[i] = LetterMatch::Correct;
-                if let Some(count) = letter_counts_chosen.get_mut(&c1) {
-                    *count -= 1;
-                }
+                *letter_counts_chosen.get_mut(&c1).unwrap() -= 1;
             }
         }
 
@@ -75,9 +73,7 @@ impl Words {
                 && letter_states[i] != LetterMatch::Correct
             {
                 letter_states[i] = LetterMatch::Partial;
-                if let Some(count) = letter_counts_chosen.get_mut(&c) {
-                    *count -= 1;
-                }
+                *letter_counts_chosen.get_mut(&c).unwrap() -= 1;
             }
         }
 
