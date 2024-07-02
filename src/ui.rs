@@ -9,7 +9,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::Paragraph,
+    widgets::{Block, Borders, Paragraph},
     Frame, Terminal,
 };
 
@@ -44,7 +44,15 @@ fn draw_frame(frame: &mut Frame, app: &app::App) {
 }
 
 fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
-    let game_area = centered_rect(10, 100, frame.size());
+    // let game_area = Layout::default()
+    //     .direction(Direction::Horizontal)
+    //     .constraints([
+    //         Constraint::Fill(1),
+    //         Constraint::Min(40),
+    //         Constraint::Fill(1),
+    //     ])
+    //     .split(frame.size())[1];
+
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -58,7 +66,7 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
             Constraint::Length(1), // padding
             Constraint::Length(1),
         ])
-        .split(game_area);
+        .split(frame.size());
 
     let title = Paragraph::new(Text::styled(
         "Termdle",
@@ -102,7 +110,7 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
             }
         } else {
             line_vec.push(Span::styled(
-                "  _ _ _ _ _",
+                " _ _ _ _ _",
                 Style::default().fg(Color::DarkGray),
             ));
         }
@@ -111,10 +119,14 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
         frame.render_widget(attempt_line, attempts_chunks[i * 2]);
     }
 
-    let input_chunks = Layout::default()
+    let input_verifiction_chunk = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Length(1), Constraint::Fill(1)])
-        .split(chunks[3]);
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Length(15),
+            Constraint::Fill(1),
+        ])
+        .split(chunks[3])[0];
 
     let valid_word_status = Paragraph::new(Text::styled(
         if app.current_input_valid {
@@ -128,10 +140,10 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
             Color::Red
         }),
     ))
-    .bold()
-    .alignment(Alignment::Right);
+    .alignment(Alignment::Right)
+    .bold();
 
-    frame.render_widget(valid_word_status, input_chunks[0]);
+    frame.render_widget(valid_word_status, input_verifiction_chunk);
 
     let mut modified_input = app.input.clone();
     if modified_input.len() < 5 {
@@ -148,7 +160,7 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
         Style::default().fg(Color::White),
     ))
     .alignment(Alignment::Center);
-    frame.render_widget(input_line, input_chunks[1]);
+    frame.render_widget(input_line, chunks[3]);
 
     if app.debug_mode {
         let debug_info = Paragraph::new(Text::styled(
@@ -160,7 +172,6 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
 }
 
 fn draw_gameend_screen(frame: &mut Frame, app: &app::App, gameend_status: bool) {
-    let game_area = centered_rect(40, 40, frame.size());
     let result: Paragraph;
     if gameend_status {
         result = Paragraph::new(format!(
@@ -177,30 +188,15 @@ fn draw_gameend_screen(frame: &mut Frame, app: &app::App, gameend_status: bool) 
         .style(Style::default().fg(Color::Red))
         .alignment(Alignment::Center);
     }
-    frame.render_widget(result, game_area)
-}
-
-/// Helper function to create a centered rect using up certain percentage of the available rect `r`
-///
-/// curtesy of the Ratatui docs
-fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
-    // Cut the given rectangle into three vertical pieces
-    let popup_layout = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
-            Constraint::Percentage((100 - percent_y) / 2),
-        ])
-        .split(r);
-
-    // Then cut the middle vertical piece into three width-wise pieces
-    Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
-            Constraint::Percentage((100 - percent_x) / 2),
-        ])
-        .split(popup_layout[1])[1] // Return the middle chunk
+    frame.render_widget(
+        result,
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([
+                Constraint::Fill(1),
+                Constraint::Fill(1),
+                Constraint::Fill(1),
+            ])
+            .split(frame.size())[1],
+    );
 }
