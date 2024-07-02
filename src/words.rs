@@ -9,7 +9,7 @@ const WORDLIST: &str = include_str!(concat!(
 /// Used for handling anything to do with words or their logic
 pub struct Words {
     all_words: Vec<&'static str>,
-    chosen_word: Option<&'static str>,
+    pub chosen_word: Option<&'static str>,
 }
 
 /// Status of how the letter of the user input word matches the chosen word.
@@ -53,16 +53,27 @@ impl Words {
         let mut letter_states = [LetterMatch::Incorrect; 5];
         let chosen_word = self.chosen_word.unwrap();
 
-        for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
-            if chosen_word.contains(c2) {
-                letter_states[i] = LetterMatch::Partial;
-            }
+        let mut letter_counts_chosen = [0u8; 26];
 
-            letter_states[i] = if c1 == c2 {
-                LetterMatch::Correct
-            } else {
-                letter_states[i]
-            };
+        chosen_word
+            .chars()
+            .for_each(|c| letter_counts_chosen[c as usize - 'a' as usize] += 1);
+
+        for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
+            if c1 == c2 {
+                letter_states[i] = LetterMatch::Correct;
+                letter_counts_chosen[c1 as usize - 'a' as usize] -= 1;
+            }
+        }
+
+        for (i, c) in word.chars().enumerate() {
+            if chosen_word.contains(c)
+                && letter_counts_chosen[c as usize - 'a' as usize] > 0
+                && letter_states[i] != LetterMatch::Correct
+            {
+                letter_states[i] = LetterMatch::Partial;
+                letter_counts_chosen[c as usize - 'a' as usize] -= 1;
+            }
         }
 
         letter_states
@@ -93,16 +104,13 @@ mod tests {
         let expected = [LetterMatch::Incorrect; 5];
         assert_eq!(words.check_word("abcdf"), expected);
 
-        let expected = [LetterMatch::Partial; 5];
-        assert_eq!(words.check_word("ettst"), expected);
-
         let expected = [
-            LetterMatch::Partial,
             LetterMatch::Correct,
+            LetterMatch::Partial,
             LetterMatch::Correct,
             LetterMatch::Incorrect,
             LetterMatch::Correct,
         ];
-        assert_eq!(words.check_word("eesbs"), expected);
+        assert_eq!(words.check_word("ttscs"), expected);
     }
 }
