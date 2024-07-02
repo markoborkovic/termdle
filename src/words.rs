@@ -64,7 +64,7 @@ impl Words {
             if c1 == c2 {
                 letter_states[i] = LetterMatch::Correct;
                 if let Some(count) = letter_counts_chosen.get_mut(&c1) {
-                    *count += 1;
+                    *count -= 1;
                 }
             }
         }
@@ -117,5 +117,15 @@ mod tests {
             LetterMatch::Correct,
         ];
         assert_eq!(words.check_word("ttscs"), expected);
+
+        words.chosen_word = Some("terry");
+        let expected = [
+            LetterMatch::Correct,
+            LetterMatch::Incorrect,
+            LetterMatch::Correct,
+            LetterMatch::Incorrect,
+            LetterMatch::Incorrect,
+        ];
+        assert_eq!(words.check_word("tarot"), expected);
     }
 }
