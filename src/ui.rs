@@ -69,21 +69,9 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
 
     let attempts_chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-            Constraint::Length(1),
-        ])
+        .constraints([Constraint::Length(1); 12])
         .split(chunks[2]);
+
     for i in 0..6 {
         let mut line_vec = vec![];
 
@@ -163,31 +151,27 @@ fn draw_playing_screen(frame: &mut Frame, app: &app::App) {
 }
 
 fn draw_gameend_screen(frame: &mut Frame, app: &app::App, gameend_status: bool) {
-    let result: Paragraph;
-    if gameend_status {
-        result = Paragraph::new(format!(
+    let result: Paragraph = if gameend_status {
+        Paragraph::new(format!(
             "Correct! The word was \"{}\"! Do you want to start a new game? (y/n)",
             &app.words.chosen_word.unwrap()
         ))
         .style(Style::default().fg(Color::Green))
-        .alignment(Alignment::Center);
+        .alignment(Alignment::Center)
     } else {
-        result = Paragraph::new(format!(
+        Paragraph::new(format!(
             "Incorrect! The word was \"{}\"! Do you want to start a new game? (y/n)",
             &app.words.chosen_word.unwrap()
         ))
         .style(Style::default().fg(Color::Red))
-        .alignment(Alignment::Center);
-    }
+        .alignment(Alignment::Center)
+    };
+
     frame.render_widget(
         result,
         Layout::default()
             .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Fill(1),
-                Constraint::Fill(1),
-                Constraint::Fill(1),
-            ])
+            .constraints([Constraint::Fill(1); 3])
             .split(frame.size())[1],
     );
 }

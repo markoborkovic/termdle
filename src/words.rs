@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use rand::Rng;
 
 /// Compile time included wordlist "sgb-words.txt" provided by Stanford University
@@ -41,10 +39,10 @@ impl Words {
     }
 
     pub fn is_word_valid(&self, word: &str) -> bool {
-        if word.len() != 5 {
-            false
-        } else {
+        if word.len() == 5 {
             self.all_words.contains(&word)
+        } else {
+            false
         }
     }
 
@@ -52,32 +50,36 @@ impl Words {
     ///
     /// returns array of LetterMatch states for each letter
     pub fn check_word(&self, word: &str) -> [LetterMatch; 5] {
-        let mut letter_states = [LetterMatch::Incorrect; 5];
-        let chosen_word = self.chosen_word.unwrap();
+        let target = self.chosen_word.unwrap();
 
-        let mut letter_counts_chosen: HashMap<char, u8> = ('a'..='z')
-            .into_iter()
-            .map(|c| (c, chosen_word.chars().filter(|cc| cc == &c).count() as u8))
-            .collect();
+        let mut result = [LetterMatch::Incorrect; 5];
+        let mut counts = [0u8; 26];
 
-        for (i, (c1, c2)) in chosen_word.chars().zip(word.chars()).enumerate() {
-            if c1 == c2 {
-                letter_states[i] = LetterMatch::Correct;
-                *letter_counts_chosen.get_mut(&c1).unwrap() -= 1;
+        let guess_bytes = word.as_bytes();
+        let target_bytes = target.as_bytes();
+
+        for &b in target_bytes {
+            counts[(b - b'a') as usize] += 1;
+        }
+
+        for (i, &b) in guess_bytes.iter().enumerate() {
+            if b == target_bytes[i] {
+                result[i] = LetterMatch::Correct;
+                counts[(b - b'a') as usize] -= 1;
             }
         }
 
-        for (i, c) in word.chars().enumerate() {
-            if chosen_word.contains(c)
-                && letter_counts_chosen[&c] > 0
-                && letter_states[i] != LetterMatch::Correct
-            {
-                letter_states[i] = LetterMatch::Partial;
-                *letter_counts_chosen.get_mut(&c).unwrap() -= 1;
+        for (i, &b) in guess_bytes.iter().enumerate() {
+            if result[i] == LetterMatch::Incorrect {
+                let index = (b - b'a') as usize;
+                if counts[index] > 0 {
+                    result[i] = LetterMatch::Partial;
+                    counts[index] -= 1;
+                }
             }
         }
 
-        letter_states
+        result
     }
 }
 
@@ -99,29 +101,31 @@ mod tests {
         let mut words = Words::new();
         words.chosen_word = Some("tests");
 
-        let expected = [LetterMatch::Correct; 5];
-        assert_eq!(words.check_word("tests"), expected);
+        assert_eq!(words.check_word("tests"), [LetterMatch::Correct; 5]);
 
-        let expected = [LetterMatch::Incorrect; 5];
-        assert_eq!(words.check_word("abcdf"), expected);
+        assert_eq!(words.check_word("abcdf"), [LetterMatch::Incorrect; 5]);
 
-        let expected = [
-            LetterMatch::Correct,
-            LetterMatch::Partial,
-            LetterMatch::Correct,
-            LetterMatch::Incorrect,
-            LetterMatch::Correct,
-        ];
-        assert_eq!(words.check_word("ttscs"), expected);
+        assert_eq!(
+            words.check_word("ttscs"),
+            [
+                LetterMatch::Correct,
+                LetterMatch::Partial,
+                LetterMatch::Correct,
+                LetterMatch::Incorrect,
+                LetterMatch::Correct,
+            ]
+        );
 
         words.chosen_word = Some("terry");
-        let expected = [
-            LetterMatch::Correct,
-            LetterMatch::Incorrect,
-            LetterMatch::Correct,
-            LetterMatch::Incorrect,
-            LetterMatch::Incorrect,
-        ];
-        assert_eq!(words.check_word("tarot"), expected);
+        assert_eq!(
+            words.check_word("tarot"),
+            [
+                LetterMatch::Correct,
+                LetterMatch::Incorrect,
+                LetterMatch::Correct,
+                LetterMatch::Incorrect,
+                LetterMatch::Incorrect,
+            ]
+        );
     }
 }

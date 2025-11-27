@@ -62,7 +62,7 @@ impl App {
             }
 
             if key.code == KeyCode::Esc
-                || (key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL))
+                || (key.code == KeyCode::Char('q') && key.modifiers.contains(KeyModifiers::CONTROL))
             {
                 self.exit = true;
                 return;
@@ -77,13 +77,13 @@ impl App {
 
     fn handle_playing(&mut self, key: KeyEvent) {
         match key.code {
-            KeyCode::Char(c) if ('a'..='z').contains(&c) => {
+            KeyCode::Char(c) if c.is_ascii_lowercase() => {
                 if self.input.len() < 5 {
                     self.input.push(c);
                 }
             }
             KeyCode::Backspace => {
-                if self.input.len() > 0 {
+                if !self.input.is_empty() {
                     self.input.pop();
                 }
             }

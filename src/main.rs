@@ -14,10 +14,8 @@ struct Args {
 }
 
 fn main() {
-    let debug_mode = Args::parse().debug;
-
-    let mut terminal = ui::init().unwrap();
-    let mut app = app::App::new(debug_mode);
-    app.run(&mut terminal).unwrap();
+    app::App::new(Args::parse().debug)
+        .run(&mut ui::init().unwrap())
+        .unwrap();
     ui::restore().unwrap();
 }
